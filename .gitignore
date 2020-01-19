@@ -1,0 +1,12 @@
+*.class
+*.jar
+*.war
+*.ear
+
+build/
+bin/
+.gradle/
+.project
+.settings
+.classpath
+.DS_Store

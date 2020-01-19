@@ -1,0 +1,26 @@
+<configuration>
+
+    <property name="HOME_LOG" value="logs/udemy-course-review.log"/>
+  
+    <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${HOME_LOG}</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/archived/udemy-course-review.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete old archived file -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- 60 days to keep -->
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>Timestamp=%d LogLevel=%-5level TaskType=DCM ServiceName=iotsp_ac_ibm ThreadId=[%thread] Class=%logger{1} Msg=%msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <root level="debug">
+		<appender-ref ref="FILE-ROLLING" />
+	</root>
+</configuration>

@@ -50,6 +50,10 @@ public class JsonUtils {
   }
 
   public static String getNotNullString(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return new String();
+    }
+
     String rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsString() : null)
         : null;
@@ -62,12 +66,18 @@ public class JsonUtils {
   }
 
   public static int getNotNullInteger(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return 0;
+    }
     return jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsInt() : -1)
         : -1;
   }
 
   public static JsonObject getNotNullJson(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return new JsonObject();
+    }
     JsonObject rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsJsonObject() : null)
         : null;
@@ -80,6 +90,9 @@ public class JsonUtils {
   }
 
   public static JsonArray getNotNullJsonArray(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return new JsonArray();
+    }
     JsonArray rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsJsonArray() : null)
         : null;

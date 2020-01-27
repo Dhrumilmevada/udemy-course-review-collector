@@ -5,20 +5,27 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.dhrumil.udemy.model.CourseCache;
+import com.dhrumil.udemy.redis.client.RedisCacheClient;
 import com.dhrumil.udemy.review.client.UdemyCourseListClient;
 import com.dhrumil.udemy.review.collector.main.AppConfig;
+import com.dhrumil.udemy.utils.JsonUtils;
+import redis.clients.jedis.Jedis;
 
 public class UdemyCourseListThread extends Thread {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UdemyCourseListThread.class);
   private final int COURSELIST_QUEUE_SIZE =
       AppConfig.CONFIG.getInt("app.udemy.courselist.queue.size");
+  private final String COURSE_CACHE_KEY = AppConfig.CONFIG.getString("app.redis.course.cache.key");
 
   private UdemyCourseListClient searchCourses = null;
   private ArrayBlockingQueue<String> courseQueue = null;
   private String searchTopic = null;
   private int pageSize = 0;
   private AtomicBoolean isCourseListThreadRunnig = null;
+  private RedisCacheClient cacheInstance = null;
+  private Jedis jedis;
 
   public UdemyCourseListThread(String searchTopic, int pageSize,
       ArrayBlockingQueue<String> courseList) {
@@ -28,7 +35,8 @@ public class UdemyCourseListThread extends Thread {
     this.courseQueue = courseList;
     this.isCourseListThreadRunnig = new AtomicBoolean(true);
     this.searchCourses = new UdemyCourseListClient(this.searchTopic, this.pageSize);
-
+    this.cacheInstance = RedisCacheClient.getInstance();
+    this.jedis = cacheInstance.getJedisThread();
   }
 
   public boolean getIsCourseListThreadRunnig() {
@@ -66,17 +74,29 @@ public class UdemyCourseListThread extends Thread {
                 e.getMessage(), e.getStackTrace(), e.getCause());
           }
         }
-
-        for (String course : courseList) {
-          boolean isCourseAdded = courseQueue.add(course);
-          if (isCourseAdded) {
-            LOGGER.info(
-                "Successfully added course : [{}] to queue ,queue size:[{}], queue capacity:[{}]",
-                course, courseQueue.size(), COURSELIST_QUEUE_SIZE);
+        courseList.stream().forEach(item -> {
+          if (isCourseAlreadyProcessed(item)) {
+            LOGGER.info("Course with id : [{}] is already processed, no need to process again",
+                item);
+          } else {
+            CourseCache courseCache = new CourseCache();
+            courseCache.setCourseId(Long.parseLong(item));
+            courseCache.setCourseProcessed(true);
+            courseCache.setCourseProcessedOn(System.currentTimeMillis());
+            boolean isCourseAdded = courseQueue.add(item);
+            this.cacheInstance.setHash(this.jedis, COURSE_CACHE_KEY, item,
+                JsonUtils.parseObjectToString(courseCache));
+            if (isCourseAdded) {
+              LOGGER.info(
+                  "Successfully added course : [{}] to queue ,queue size:[{}], queue capacity:[{}]",
+                  item, courseQueue.size(), COURSELIST_QUEUE_SIZE);
+            }
           }
-        }
+        });
+        courseList.clear();
+
         try {
-          Thread.sleep(25000);
+          Thread.sleep(2000);
         } catch (InterruptedException e) {
           LOGGER.error(
               "Exception while thread in sleeping state errorMessage : [{}], errorStackTrace : [{}],errorCause : [{}]",
@@ -86,4 +106,12 @@ public class UdemyCourseListThread extends Thread {
     }
   }
 
+  private boolean isCourseAlreadyProcessed(String course) {
+    if (this.cacheInstance.isHashExists(this.jedis, COURSE_CACHE_KEY, course)) {
+      String courseCache = this.cacheInstance.getHash(this.jedis, COURSE_CACHE_KEY, course);
+      CourseCache instance = JsonUtils.stringToColletion(courseCache, CourseCache.class);
+      return instance.isCourseProcessed();
+    }
+    return false;
+  }
 }

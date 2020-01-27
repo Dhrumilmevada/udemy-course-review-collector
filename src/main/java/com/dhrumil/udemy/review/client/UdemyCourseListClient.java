@@ -29,38 +29,43 @@ public class UdemyCourseListClient {
 
   private String searchTopic;
   private int pageSize;
-  private int numOfPages;
+  private int totalRecord;
+  private int totalPage;
   private int currentPage;
 
   public UdemyCourseListClient(String searchTopic, int pageSize) {
     super();
     this.searchTopic = searchTopic;
     this.pageSize = pageSize;
-    this.numOfPages = 0;
+    this.totalRecord = 0;
+    this.currentPage = 1;
   }
 
   private void init() {
-    this.numOfPages =
-        Integer.parseInt(JsonUtils.getNotNullString(this.getCourseResponse(1, 1), Constant.COUNT));
-    if (numOfPages % this.pageSize == 0) {
-      this.currentPage = numOfPages / pageSize;
+    this.totalRecord = JsonUtils.getNotNullInteger(this.getCourseResponse(1, 1), Constant.COUNT);
+    if (totalRecord % this.pageSize == 0) {
+      this.totalPage = totalRecord / pageSize;
     } else {
-      this.currentPage = (numOfPages / pageSize) + 1;
+      this.totalPage = (totalRecord / pageSize) + 1;
     }
     LOGGER.info("Need to fetch course of [{}] pages with page size of [{}] for search [{}]",
-        this.currentPage, this.pageSize, this.searchTopic);
+        this.totalPage, this.pageSize, this.searchTopic);
   }
 
   public List<String> getNextCourses() {
-    if (this.numOfPages == 0) {
+    if (this.totalRecord == 0) {
       init();
     }
 
-    if (this.currentPage >= 1) {
+    if (this.currentPage <= this.totalPage) {
       JsonObject courseRes = getCourseResponse(this.currentPage, this.pageSize);
       JsonArray courseListJson = JsonUtils.getNotNullJsonArray(courseRes, Constant.RESULTS);
       List<String> courseList = getCourseIDListFromResponse(courseListJson);
-      this.currentPage--;
+      System.out.println("===========================================  " + currentPage
+          + "  ======================================================");
+
+      this.currentPage++;
+
       return courseList;
     }
     return Collections.emptyList();

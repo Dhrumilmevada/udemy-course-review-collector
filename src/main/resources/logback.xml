@@ -16,11 +16,19 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>Timestamp=%d LogLevel=%-5level TaskType=DCM ServiceName=iotsp_ac_ibm ThreadId=[%thread] Class=%logger{1} Msg=%msg%n</pattern>
+            <pattern>Timestamp=%d LogLevel=%-5level ServiceName=udemy-course-review-collector ThreadId=[%thread] Class=%logger{1} Msg=%msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+  		<encoder>
+            <pattern>Timestamp=%d LogLevel=%-5level ServiceName=udemy-course-review-collector ThreadId=[%thread] Class=%logger{1} Msg=%msg%n</pattern>
         </encoder>
     </appender>
     
     <root level="debug">
-		<appender-ref ref="FILE-ROLLING" />
+    	<appender-ref ref="FILE-ROLLING" />
+    	<appender-ref ref="CONSOLE" />
+    	
 	</root>
 </configuration>

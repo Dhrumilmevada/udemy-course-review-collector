@@ -1,10 +1,14 @@
 package com.dhrumil.udemy.mongodb.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.dhrumil.udemy.model.Course;
+import com.dhrumil.udemy.model.Review;
 import com.dhrumil.udemy.review.collector.main.AppConfig;
 import com.dhrumil.udemy.utils.JsonUtils;
 import com.mongodb.BasicDBObject;
@@ -54,6 +58,55 @@ public class MongoDBClient {
     }
   }
 
+  public <T> void insertMany(List<T> documents) {
+    if (documents.get(0) instanceof Review) {
+      MongoCollection<Document> collection = getOrCreateCollection(REVIEW_COLLECTION);
+      insertBulkDocument(collection, documents);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> void insertBulkDocument(MongoCollection<Document> collection, List<T> documents) {
+    String collectionName = collection.getNamespace().getCollectionName();
+
+    if (collectionName.equalsIgnoreCase(REVIEW_COLLECTION)) {
+      List<Review> reviewList = (List<Review>) documents;
+      List<Review> reviewsToInsert = reviewList.stream().filter(review -> {
+        String reviewid =
+            String.valueOf(review.getCourseId()) + ":" + String.valueOf(review.getId());
+        boolean documentExists = this.documentExists(collection, reviewid);
+        if (!documentExists) {
+          return true;
+        } else {
+          LOGGER.info("Review with id: [{}] is already exists in [{}] collection", reviewid,
+              collectionName);
+          return false;
+        }
+      }).collect(Collectors.toList());
+      reviewList = null;
+
+      List<Document> reviewDocList = new ArrayList<Document>();
+
+      reviewsToInsert.stream().forEach(review -> {
+        Map<String, Object> reviewMap =
+            JsonUtils.stringToColletion(JsonUtils.parseObjectToString(review), Map.class);
+        String reviewid =
+            String.valueOf(review.getCourseId()) + ":" + String.valueOf(review.getId());
+        reviewMap.put("_id", reviewid);
+        Document reviewDoc = new Document(reviewMap);
+        reviewDocList.add(reviewDoc);
+        reviewDoc = null;
+        reviewMap = null;
+        reviewid = null;
+      });
+
+      collection.insertMany(reviewDocList);
+      LOGGER.info("Successfully added [{}] reviews to [{}] databases", reviewDocList.size(),
+          DATABASE_NAME);
+
+    }
+  }
+
   @SuppressWarnings("unchecked")
   private <T> void insertDocument(MongoCollection<Document> collection, T document) {
     String collectionName = collection.getNamespace().getCollectionName();
@@ -66,12 +119,12 @@ public class MongoDBClient {
         Map<String, Object> courseMap =
             JsonUtils.stringToColletion(JsonUtils.parseObjectToString(course), Map.class);
         courseMap.put("_id", String.valueOf(course.getCourseId()));
-        LOGGER.info("Inserting data with _id [{}] in [{}] collection", course.getCourseId(),
+        LOGGER.info("Inserting course with _id [{}] in [{}] collection", course.getCourseId(),
             collectionName);
         Document insertDocument = new Document(courseMap);
         collection.insertOne(insertDocument);
       } else {
-        LOGGER.info("Data with id [{}] already exists in [{}] collection", course.getCourseId(),
+        LOGGER.info("Course with id [{}] already exists in [{}] collection", course.getCourseId(),
             collectionName);
       }
     }
@@ -111,12 +164,12 @@ public class MongoDBClient {
     while (collectionCursor.hasNext()) {
       String collection = collectionCursor.next();
       if (collection.equals(collectionName)) {
-        LOGGER.info("Collection [{}] is exists in [{}] in database", collectionName, DATABASE_NAME);
+        LOGGER.info("Collection [{}] is exists in [{}] database", collectionName, DATABASE_NAME);
         return true;
       }
     }
     LOGGER.info(
-        "Collection [{}] does not exists in [{}] in database , need to create [{}] collection",
+        "[{}] collection does not exists in [{}] database , need to create [{}] collection",
         collectionName, DATABASE_NAME, collectionName);
     return false;
   }

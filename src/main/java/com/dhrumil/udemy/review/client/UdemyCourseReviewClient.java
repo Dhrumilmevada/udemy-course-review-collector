@@ -22,7 +22,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class UdemyCourseReviewClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UdemyCourseListClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UdemyCourseReviewClient.class);
 
   private final String OAUTH_USER = AppConfig.CONFIG.getString("app.udemy.oauth.user");
   private final String OAUTH_PASS = AppConfig.CONFIG.getString("app.udemy.oauth.pass");
@@ -34,18 +34,17 @@ public class UdemyCourseReviewClient {
   private int numOfPage;
   private int currentPage;
 
-  private static int count;
-
   public UdemyCourseReviewClient(String courseId, int pageSize) {
     this.courseId = courseId;
     this.pageSize = pageSize;
     this.numOfPage = 0;
+    this.currentPage = 0;
   }
 
   private void init() {
     JsonObject reviewResponse = this.getCourseReviewRes(1, 1);
     if (reviewResponse != null) {
-      this.numOfPage = JsonUtils.getNotNullInteger(reviewResponse, Constant.COUNT);
+      this.numOfPage = JsonUtils.getInteger(reviewResponse, Constant.COUNT);
     } else {
       this.numOfPage = 0;
     }
@@ -73,7 +72,7 @@ public class UdemyCourseReviewClient {
     }
     if (this.currentPage >= 1) {
       JsonObject reviewJson = getCourseReviewRes(this.currentPage, this.pageSize);
-      JsonArray reviewList = JsonUtils.getNotNullJsonArray(reviewJson, Constant.RESULTS);
+      JsonArray reviewList = JsonUtils.getJsonArray(reviewJson, Constant.RESULTS);
       List<Review> reviews = getReviewList(reviewList);
       this.currentPage--;
       return reviews;
@@ -83,18 +82,22 @@ public class UdemyCourseReviewClient {
   }
 
   private List<Review> getReviewList(JsonArray reviews) {
+    if (reviews == null) {
+      return null;
+    }
+
     List<Review> reviewList = new ArrayList<Review>();
 
     for (JsonElement reviewEle : reviews) {
       JsonObject reviewJson = reviewEle.getAsJsonObject();
       Review review = new Review();
-      review.setId(Long.parseLong(JsonUtils.getNotNullString(reviewJson, Constant.ID)));
-      review.setContent(JsonUtils.getNotNullString(reviewJson, Constant.CONTENT));
-      review.setRating(Double.parseDouble(JsonUtils.getNotNullString(reviewJson, Constant.RATING)));
-      review.setCreated(JsonUtils.getNotNullString(reviewJson, Constant.CREATED));
-      review.setModified(JsonUtils.getNotNullString(reviewJson, Constant.MODIFIED));
-      review.setUserModified(JsonUtils.getNotNullString(reviewJson, Constant.USER_MODIFIED));
-      review.setUser(getUserInfo(JsonUtils.getNotNullJson(reviewJson, Constant.USER)));
+      review.setId(Long.parseLong(JsonUtils.getString(reviewJson, Constant.ID)));
+      review.setContent(JsonUtils.getString(reviewJson, Constant.CONTENT));
+      review.setRating(Double.parseDouble(JsonUtils.getString(reviewJson, Constant.RATING)));
+      review.setCreated(JsonUtils.getString(reviewJson, Constant.CREATED));
+      review.setModified(JsonUtils.getString(reviewJson, Constant.MODIFIED));
+      review.setUserModified(JsonUtils.getString(reviewJson, Constant.USER_MODIFIED));
+      review.setUser(getUserInfo(JsonUtils.getJson(reviewJson, Constant.USER)));
       review.setCourseId(Long.parseLong(courseId));
 
       reviewList.add(review);
@@ -104,11 +107,15 @@ public class UdemyCourseReviewClient {
   }
 
   private User getUserInfo(JsonObject userInfo) {
+    if (userInfo == null) {
+      return null;
+    }
+
     if (userInfo.size() != 0) {
       User user = new User();
-      user.setTitle(JsonUtils.getNotNullString(userInfo, Constant.TITLE));
-      user.setName(JsonUtils.getNotNullString(userInfo, Constant.NAME));
-      user.setDisplayName(JsonUtils.getNotNullString(userInfo, Constant.DISPLAY_NAME));
+      user.setTitle(JsonUtils.getString(userInfo, Constant.TITLE));
+      user.setName(JsonUtils.getString(userInfo, Constant.NAME));
+      user.setDisplayName(JsonUtils.getString(userInfo, Constant.DISPLAY_NAME));
       return user;
     }
     return null;
@@ -139,22 +146,18 @@ public class UdemyCourseReviewClient {
     if (response.getStatus() == 200) {
       String responseStr = response.getEntity(String.class);
       JsonObject responseJson = JsonUtils.parseToJson(responseStr);
-      JsonArray reviewList = JsonUtils.getNotNullJsonArray(responseJson, Constant.RESULTS);
+      JsonArray reviewList = JsonUtils.getJsonArray(responseJson, Constant.RESULTS);
 
-      if (responseJson.isJsonNull()) {
-        LOGGER.warn("Udemy api [{}]'s response [{}] is null for page : [{}]",
+      if (responseJson.isJsonNull() || responseJson == null) {
+        LOGGER.warn("Udemy review api [{}]'s response [{}] is null for page : [{}]",
             this.COURSE_REVIEW_URL, responseJson.toString(), page);
         return null;
-      } else if (reviewList.isJsonNull() || reviewList.size() == 0) {
-        LOGGER.warn("Udemy api [{}]'s response [{}] is not in valid form for page : [{}]",
+      } else if (reviewList.isJsonNull() || reviewList.size() == 0 || reviewList == null) {
+        LOGGER.warn("Udemy review api [{}]'s response [{}] is not in valid form for page : [{}]",
             this.COURSE_REVIEW_URL, reviewList.toString(), page);
         return null;
       }
 
-      if (pagesize != 1)
-        count += reviewList.size();
-      System.out.println("================================================REVIEW :" + count
-          + "====================================================");
       LOGGER.info(
           "Got course review [{}] for course id [{}] from udemy rest api with response status :[{}]",
           reviewList.size(), this.courseId, response.getStatus());

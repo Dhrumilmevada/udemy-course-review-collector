@@ -19,7 +19,7 @@ public class JsonUtils {
   public static JsonObject parseToJson(String dataStr) {
     if (dataStr == null) {
       LOGGER.warn("Provided data is not in proper form, not able to parse the data");
-      return new JsonObject();
+      return null;
     }
     try {
       return parser.parse(dataStr).getAsJsonObject();
@@ -27,81 +27,107 @@ public class JsonUtils {
       LOGGER.error(
           "Error while parsing string data [{}] to json data errorMessage : [{}], errorStackTrace : [{}], errorCause : [{}]",
           dataStr, e.getMessage(), e.getStackTrace(), e.getCause());
-      return new JsonObject();
     }
+    return null;
   }
 
   public static <T> String parseObjectToString(T object) {
+    if (object == null) {
+      return null;
+    }
     return gson.toJson(object);
   }
 
-  @SuppressWarnings("unchecked")
   public static <T> T stringToColletion(String data, Class<T> classOfT) {
+    if (data == null) {
+      return null;
+    }
     return (T) gson.fromJson(data, classOfT);
   }
 
 
   public static List<?> jsonToList(JsonObject data, Class<?> classOfT) {
+    if (data == null) {
+      return null;
+    }
     return (List<?>) gson.fromJson(data, classOfT);
   }
 
   public static List<?> jsonArrayToList(JsonArray data, Class<?> classOfT) {
+    if (data == null) {
+      return null;
+    }
     return (List<?>) gson.fromJson(data, classOfT);
   }
 
-  public static String getNotNullString(JsonObject jsondata, String field) {
+  public static String getString(JsonObject jsondata, String field) {
     if (jsondata == null || jsondata.size() == 0) {
-      return new String();
+      return null;
     }
 
     String rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsString() : null)
         : null;
 
-    if (rtn == null) {
-      return new String();
-    } else {
-      return rtn;
-    }
+    return rtn;
   }
 
-  public static int getNotNullInteger(JsonObject jsondata, String field) {
+  public static int getInteger(JsonObject jsondata, String field) {
     if (jsondata == null || jsondata.size() == 0) {
-      return 0;
+      return -1;
     }
     return jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsInt() : -1)
         : -1;
   }
 
-  public static JsonObject getNotNullJson(JsonObject jsondata, String field) {
+  public static long getLong(JsonObject jsondata, String field) {
     if (jsondata == null || jsondata.size() == 0) {
-      return new JsonObject();
+      return -1L;
+    }
+    return jsondata.has(field)
+        ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsLong() : -1L)
+        : -1L;
+  }
+
+  public static boolean getBoolean(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return false;
+    }
+    return jsondata.has(field)
+        ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsBoolean() : false)
+        : false;
+  }
+
+  public static double getDouble(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return -1;
+    }
+    return jsondata.has(field)
+        ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsDouble() : -1)
+        : -1;
+  }
+
+  public static JsonObject getJson(JsonObject jsondata, String field) {
+    if (jsondata == null || jsondata.size() == 0) {
+      return null;
     }
     JsonObject rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsJsonObject() : null)
         : null;
 
-    if (rtn == null) {
-      return new JsonObject();
-    } else {
-      return rtn;
-    }
+    return rtn;
   }
 
-  public static JsonArray getNotNullJsonArray(JsonObject jsondata, String field) {
+  public static JsonArray getJsonArray(JsonObject jsondata, String field) {
     if (jsondata == null || jsondata.size() == 0) {
-      return new JsonArray();
+      return null;
     }
     JsonArray rtn = jsondata.has(field)
         ? (!jsondata.get(field).isJsonNull() ? jsondata.get(field).getAsJsonArray() : null)
         : null;
 
-    if (rtn == null) {
-      return new JsonArray();
-    } else {
-      return rtn;
-    }
+    return rtn;
   }
 
 

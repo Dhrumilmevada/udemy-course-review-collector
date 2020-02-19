@@ -3,7 +3,6 @@ package com.dhrumil.udemy.review.runnable;
 import java.util.concurrent.ArrayBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.dhrumil.udemy.model.Review;
 import com.dhrumil.udemy.review.collector.main.AppConfig;
 
 public class UdemyCourseSearchThread implements Runnable {
@@ -18,18 +17,28 @@ public class UdemyCourseSearchThread implements Runnable {
   private UdemyCourseListThread courseListThread = null;
   private UdemyReviewThread reviewThread = null;
   private ArrayBlockingQueue<String> courseListQueue = null;
-  private ArrayBlockingQueue<Review> courseReviewQueue = null;
   private String searchTopic = null;
 
-  public UdemyCourseSearchThread(String searchTopic, ArrayBlockingQueue<Review> queue) {
+  public UdemyCourseSearchThread(String searchTopic) {
     this.searchTopic = searchTopic;
-    this.courseReviewQueue = queue;
     courseListQueue = new ArrayBlockingQueue<>(COURSELIST_QUEUE_CAPACITY);
     this.courseListThread =
         new UdemyCourseListThread(this.searchTopic, COURSELIST_PAGESIZE, this.courseListQueue);
-    this.reviewThread = new UdemyReviewThread(courseListQueue, courseReviewQueue, courseListThread);
+    this.reviewThread = new UdemyReviewThread(courseListQueue, courseListThread);
 
   }
+
+
+  public String getSearchTopic() {
+    return this.searchTopic;
+  }
+
+  @Override
+  public String toString() {
+    // TODO Auto-generated method stub
+    return this.searchTopic;
+  }
+
 
   @Override
   public void run() {
@@ -39,6 +48,19 @@ public class UdemyCourseSearchThread implements Runnable {
     coursereview.setName(searchTopic + "-course-review");
     courseList.start();
     coursereview.start();
+
+    try {
+      courseList.join();
+      System.out.println("################################################  "
+          + courseList.getName().toUpperCase()
+          + " COMPLETED.  ##############################################################################");
+      coursereview.join();
+      System.out.println("################################################  "
+          + coursereview.getName().toUpperCase()
+          + " COMPLETED.  ##############################################################################");
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
 }

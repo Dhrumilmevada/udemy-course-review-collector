@@ -8,7 +8,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/archived/udemy-course-review.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!-- each archived file, size max 10MB -->
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>1GB</maxFileSize>
             <!-- total size of all archive files, if total size > 20GB, it will delete old archived file -->
             <totalSizeCap>20GB</totalSizeCap>
             <!-- 60 days to keep -->

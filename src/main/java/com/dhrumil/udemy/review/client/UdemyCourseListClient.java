@@ -42,7 +42,12 @@ public class UdemyCourseListClient {
   }
 
   private void init() {
-    this.totalRecord = JsonUtils.getNotNullInteger(this.getCourseResponse(1, 1), Constant.COUNT);
+    this.totalRecord = JsonUtils.getInteger(this.getCourseResponse(1, 1), Constant.COUNT);
+    if (totalRecord == -1) {
+      this.totalRecord = 0;
+      this.currentPage = 1;
+      return;
+    }
     if (totalRecord % this.pageSize == 0) {
       this.totalPage = totalRecord / pageSize;
     } else {
@@ -59,10 +64,8 @@ public class UdemyCourseListClient {
 
     if (this.currentPage <= this.totalPage) {
       JsonObject courseRes = getCourseResponse(this.currentPage, this.pageSize);
-      JsonArray courseListJson = JsonUtils.getNotNullJsonArray(courseRes, Constant.RESULTS);
+      JsonArray courseListJson = JsonUtils.getJsonArray(courseRes, Constant.RESULTS);
       List<String> courseList = getCourseIDListFromResponse(courseListJson);
-      System.out.println("===========================================  " + currentPage
-          + "  ======================================================");
 
       this.currentPage++;
 
@@ -96,12 +99,13 @@ public class UdemyCourseListClient {
     if (response.getStatus() == 200) {
       String resStr = response.getEntity(String.class);
       JsonObject resJson = JsonUtils.parseToJson(resStr);
-      JsonArray courseListJson = JsonUtils.getNotNullJsonArray(resJson, Constant.RESULTS);
+      JsonArray courseListJson = JsonUtils.getJsonArray(resJson, Constant.RESULTS);
 
-      if (resJson.isJsonNull()) {
+      if (resJson.isJsonNull() || resJson == null) {
         LOGGER.warn("Udemy api response [{}] is null", resJson.toString());
         return null;
-      } else if (courseListJson.isJsonNull() || courseListJson.size() == 0) {
+      } else if (courseListJson.isJsonNull() || courseListJson.size() == 0
+          || courseListJson == null) {
         LOGGER.warn("Udemy api response [{}] is not in valid form", resJson.toString());
         return null;
       }
@@ -119,10 +123,12 @@ public class UdemyCourseListClient {
 
   private List<String> getCourseIDListFromResponse(JsonArray courseListJson) {
 
+    if (courseListJson == null) {
+      return null;
+    }
     List<String> courseList = new ArrayList<String>();
-
     for (JsonElement course : courseListJson) {
-      courseList.add(JsonUtils.getNotNullString(course.getAsJsonObject(), Constant.ID));
+      courseList.add(JsonUtils.getString(course.getAsJsonObject(), Constant.ID));
     }
 
     return courseList;

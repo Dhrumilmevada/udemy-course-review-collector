@@ -43,7 +43,14 @@ public class UdemyCourseListThread extends Thread {
   public void run() {
 
     while (this.isCourseListThreadRunnig.get()) {
-      List<String> courseList = searchCourses.getNextCourses();
+      List<String> courseList = null;
+      try {
+        courseList = searchCourses.getNextCourses();
+      } catch (InterruptedException e1) {
+        LOGGER.error(
+            "Got InterruptedException errorCause: [{}] errorMessage: [{}] errorStackTrace: [{}]",
+                  e1.getCause(), e1.getMessage(), e1.getStackTrace());
+      }
 
       if (courseList == null) {
         continue;

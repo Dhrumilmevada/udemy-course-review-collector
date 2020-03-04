@@ -52,7 +52,29 @@ public class UdemyCourseDetailClient {
 
     try {
       LOGGER.info("Sending request to get course detail to udemy rest URL : [{}]", COURSE_DETAIL);
-      response = resource.get(ClientResponse.class);
+
+      boolean gotResponse = true;
+      int failedCount = 1;
+      while (gotResponse) {
+        if (RateLimitUdemyRequest.rateLimitUdemyRestReq.acquire() > 0L) {
+          response = resource.get(ClientResponse.class);
+          if(response.getStatus() == 429) {
+            try {
+              Thread.sleep(500 * failedCount);
+            } catch (InterruptedException e) {
+              LOGGER.error(
+                  "Got InterruptedException errorCause: [{}] errorMessage: [{}] errorStackTrace: [{}]",
+                  e.getCause(), e.getMessage(), e.getStackTrace());
+            }
+            gotResponse = true;
+            failedCount++;
+          } else {
+            gotResponse = false;
+            failedCount = 1;
+          }
+        }
+      }
+
     } catch (UniformInterfaceException | ClientHandlerException e) {
       LOGGER.error(
           "Exception while calling udemy rest-api to get course Detail for courseID :[{}] errorMessage:[{}], errorStackTrace:[{}], errorCause:[{}]",

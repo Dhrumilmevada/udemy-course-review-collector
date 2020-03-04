@@ -41,13 +41,8 @@ public class UdemyCourseListClient {
     this.currentPage = 1;
   }
 
-  private void init() {
+  private void init() throws InterruptedException {
     this.totalRecord = JsonUtils.getInteger(this.getCourseResponse(1, 1), Constant.COUNT);
-    if (totalRecord == -1) {
-      this.totalRecord = 0;
-      this.currentPage = 1;
-      return;
-    }
     if (totalRecord % this.pageSize == 0) {
       this.totalPage = totalRecord / pageSize;
     } else {
@@ -57,7 +52,7 @@ public class UdemyCourseListClient {
         this.totalPage, this.pageSize, this.searchTopic);
   }
 
-  public List<String> getNextCourses() {
+  public List<String> getNextCourses() throws InterruptedException {
     if (this.totalRecord == 0) {
       init();
     }
@@ -74,7 +69,7 @@ public class UdemyCourseListClient {
     return Collections.emptyList();
   }
 
-  private JsonObject getCourseResponse(int page, int pagesize) {
+  private JsonObject getCourseResponse(int page, int pagesize) throws InterruptedException {
 
     Client restClient = Client.create();
 
@@ -87,7 +82,22 @@ public class UdemyCourseListClient {
     try {
       LOGGER.info("Sending request to get list of courses to udemy rest URL : [{}]",
           COURSE_LIST_URL);
-      response = resource.get(ClientResponse.class);
+
+      boolean gotResponse = true;
+      int failedCount = 1;
+      while (gotResponse) {
+        if (RateLimitUdemyRequest.rateLimitUdemyRestReq.acquire() >= 0L) {
+          response = resource.get(ClientResponse.class);
+          if (response.getStatus() == 429) {
+            Thread.sleep(500 * failedCount);
+            gotResponse = true;
+            failedCount++;
+          } else {
+            gotResponse = false;
+            failedCount = 1;
+          }
+        }
+      }
     } catch (UniformInterfaceException | ClientHandlerException e) {
       LOGGER.error(
           "Exception while calling udemy rest-api to get course List for search :[{}] on page : [{}] errorMessage:[{}], errorStackTrace:[{}], errorCause:[{}]",

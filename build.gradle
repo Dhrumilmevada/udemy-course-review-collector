@@ -34,6 +34,8 @@ dependencies {
 	
 	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.11.2'
 	compile group: 'redis.clients', name: 'jedis', version: '3.0.1'
+	compile group: 'com.google.guava', name: 'guava', version: '28.0-jre'
+	
 	
 		
 

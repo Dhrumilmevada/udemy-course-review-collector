@@ -83,7 +83,14 @@ public class UdemyReviewThread implements Runnable {
   private void getAllReviews(UdemyCourseReviewClient courseReviewClient, String courseId) {
     boolean gotAllReview = false;
     while (!gotAllReview) {
-      List<Review> reviewList = courseReviewClient.getNextReview();
+      List<Review> reviewList = null;
+      try {
+        reviewList = courseReviewClient.getNextReview();
+      } catch (InterruptedException e) {
+        LOGGER.error(
+            "Got InterruptedException errorCause: [{}] errorMessage: [{}] errorStackTrace: [{}]",
+            e.getCause(), e.getMessage(), e.getStackTrace());
+      }
 
       if (reviewList == null) {
         continue;

@@ -41,7 +41,7 @@ public class UdemyCourseReviewClient {
     this.currentPage = 0;
   }
 
-  private void init() {
+  private void init() throws InterruptedException {
     JsonObject reviewResponse = this.getCourseReviewRes(1, 1);
     if (reviewResponse != null) {
       this.numOfPage = JsonUtils.getInteger(reviewResponse, Constant.COUNT);
@@ -65,7 +65,7 @@ public class UdemyCourseReviewClient {
 
   }
 
-  public List<Review> getNextReview() {
+  public List<Review> getNextReview() throws InterruptedException {
 
     if (numOfPage == 0) {
       init();
@@ -121,7 +121,7 @@ public class UdemyCourseReviewClient {
     return null;
   }
 
-  private JsonObject getCourseReviewRes(int page, int pagesize) {
+  private JsonObject getCourseReviewRes(int page, int pagesize) throws InterruptedException {
 
     String url = String.format(COURSE_REVIEW_URL, this.courseId);
 
@@ -134,7 +134,22 @@ public class UdemyCourseReviewClient {
 
     try {
       LOGGER.info("Sending request to get course review to udemy rest URL : [{}]", url);
-      response = resource.get(ClientResponse.class);
+
+      boolean gotResponse = true;
+      int failedCount = 1;
+      while (gotResponse) {
+        if (RateLimitUdemyRequest.rateLimitUdemyRestReq.acquire() >= 0L) {
+          response = resource.get(ClientResponse.class);
+          if (response.getStatus() == 429) {
+            Thread.sleep(500 * failedCount);
+            gotResponse = true;
+            failedCount++;
+          } else {
+            gotResponse = false;
+            failedCount = 1;
+          }
+        }
+      }
     } catch (UniformInterfaceException | ClientHandlerException e) {
       LOGGER.error(
           "Exception while calling udemy rest-api to get course review for course [{}] on page : [{}] errorMessage:[{}], errorStackTrace:[{}], errorCause:[{}]",

@@ -18,7 +18,8 @@ public class ReviewCollector {
       }
     });
 
-    List<String> search = Arrays.asList("docker", "kafka", "python", "java", "javascript");
+    List<String> search =
+        Arrays.asList("docker", "kafka", "python", "java", "javascript", "photography");
     search.stream().forEach(topic -> {
       UdemyCourseSearchThread courseSearchThread = new UdemyCourseSearchThread(topic);
       threadpool.execute(courseSearchThread);

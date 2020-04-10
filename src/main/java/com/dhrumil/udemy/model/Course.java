@@ -36,9 +36,22 @@ public class Course {
   private String description;
   private String discountStartTime;
   private String discountEndTime;
+  private double rating;
+  private double rating_recent;
+  private int reviewCount;
+  private int reviewCount_recent;
+  private int oneStarCount;
+  private int twoStarCount;
+  private int threeStarCount;
+  private int fourStarCount;
+  private int fiveStarCount;
 
   public Course() {
     super();
+  }
+
+  public long getCourseId() {
+    return courseId;
   }
 
   // not recommended to use... it is not good practice
@@ -49,7 +62,10 @@ public class Course {
       String subcategory, String createdOn, String publishedOn, double contentLength,
       String contentLengthUnit, List<String> prerequisites, List<String> objectives,
       List<String> targetAudiences, String updatedOn, boolean isPreviewAvailable, String previewUrl,
-      List<String> metadata, String description, String discountStartTime, String discountEndTime) {
+      List<String> metadata, String description, String discountStartTime, String discountEndTime,
+      double rating, double rating_recent, int reviewCount, int reviewCount_recent,
+      int oneStarCount, int twoStarCount, int threeStarCount, int fourStarCount,
+      int fiveStarCount) {
     super();
     this.courseId = courseId;
     this.title = title;
@@ -83,10 +99,15 @@ public class Course {
     this.description = description;
     this.discountStartTime = discountStartTime;
     this.discountEndTime = discountEndTime;
-  }
-
-  public long getCourseId() {
-    return courseId;
+    this.rating = rating;
+    this.rating_recent = rating_recent;
+    this.reviewCount = reviewCount;
+    this.reviewCount_recent = reviewCount_recent;
+    this.oneStarCount = oneStarCount;
+    this.twoStarCount = twoStarCount;
+    this.threeStarCount = threeStarCount;
+    this.fourStarCount = fourStarCount;
+    this.fiveStarCount = fiveStarCount;
   }
 
   public void setCourseId(long courseId) {
@@ -341,6 +362,78 @@ public class Course {
     this.discountEndTime = discountEndTime;
   }
 
+  public double getRating() {
+    return rating;
+  }
+
+  public void setRating(double rating) {
+    this.rating = rating;
+  }
+
+  public double getRating_recent() {
+    return rating_recent;
+  }
+
+  public void setRating_recent(double rating_recent) {
+    this.rating_recent = rating_recent;
+  }
+
+  public int getReviewCount() {
+    return reviewCount;
+  }
+
+  public void setReviewCount(int reviewCount) {
+    this.reviewCount = reviewCount;
+  }
+
+  public int getReviewCount_recent() {
+    return reviewCount_recent;
+  }
+
+  public void setReviewCount_recent(int reviewCount_recent) {
+    this.reviewCount_recent = reviewCount_recent;
+  }
+
+  public int getOneStarCount() {
+    return oneStarCount;
+  }
+
+  public void setOneStarCount(int oneStarCount) {
+    this.oneStarCount = oneStarCount;
+  }
+
+  public int getTwoStarCount() {
+    return twoStarCount;
+  }
+
+  public void setTwoStarCount(int twoStarCount) {
+    this.twoStarCount = twoStarCount;
+  }
+
+  public int getThreeStarCount() {
+    return threeStarCount;
+  }
+
+  public void setThreeStarCount(int threeStarCount) {
+    this.threeStarCount = threeStarCount;
+  }
+
+  public int getFourStarCount() {
+    return fourStarCount;
+  }
+
+  public void setFourStarCount(int fourStarCount) {
+    this.fourStarCount = fourStarCount;
+  }
+
+  public int getFiveStarCount() {
+    return fiveStarCount;
+  }
+
+  public void setFiveStarCount(int fiveStarCount) {
+    this.fiveStarCount = fiveStarCount;
+  }
+
   @Override
   public String toString() {
     return "Course [courseId=" + courseId + ", title=" + title + ", url=" + url + ", paid=" + paid
@@ -356,6 +449,12 @@ public class Course {
         + targetAudiences + ", updatedOn=" + updatedOn + ", isPreviewAvailable="
         + isPreviewAvailable + ", previewUrl=" + previewUrl + ", metadata=" + metadata
         + ", description=" + description + ", discountStartTime=" + discountStartTime
-        + ", discountEndTime=" + discountEndTime + "]";
+        + ", discountEndTime=" + discountEndTime + ", rating=" + rating + ", rating_recent="
+        + rating_recent + ", reviewCount=" + reviewCount + ", reviewCount_recent="
+        + reviewCount_recent + ", oneStarCount=" + oneStarCount + ", twoStarCount=" + twoStarCount
+        + ", threeStarCount=" + threeStarCount + ", fourStarCount=" + fourStarCount
+        + ", fiveStarCount=" + fiveStarCount + "]";
   }
+
+
 }

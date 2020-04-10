@@ -58,12 +58,14 @@ public class UdemyReviewThread implements Runnable {
           } else {
             UdemyCourseDetailClient courseDetailClient = new UdemyCourseDetailClient(courseID);
             Course course = courseDetailClient.getCourseDetail();
-            this.dbClient.insert(course);
+            if (course != null) {
+              this.dbClient.insert(course);
+            }
             courseDetailClient = null;
-            UdemyCourseReviewClient courseReviewClient =
-                new UdemyCourseReviewClient(courseID, 1000);
-            getAllReviews(courseReviewClient, courseID);
-            courseReviewClient = null;
+            // UdemyCourseReviewClient courseReviewClient =
+            // new UdemyCourseReviewClient(courseID, 1000);
+            // getAllReviews(courseReviewClient, courseID);
+            // courseReviewClient = null;
           }
         });
         courseIdList.clear();

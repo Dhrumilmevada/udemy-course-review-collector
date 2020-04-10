@@ -48,19 +48,6 @@ public class UdemyCourseSearchThread implements Runnable {
     coursereview.setName(searchTopic + "-course-review");
     courseList.start();
     coursereview.start();
-
-    try {
-      courseList.join();
-      System.out.println("################################################  "
-          + courseList.getName().toUpperCase()
-          + " COMPLETED.  ##############################################################################");
-      coursereview.join();
-      System.out.println("################################################  "
-          + coursereview.getName().toUpperCase()
-          + " COMPLETED.  ##############################################################################");
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 
 }

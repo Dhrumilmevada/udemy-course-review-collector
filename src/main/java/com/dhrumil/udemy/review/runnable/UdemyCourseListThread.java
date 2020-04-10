@@ -15,7 +15,8 @@ public class UdemyCourseListThread extends Thread {
   private static final Logger LOGGER = LoggerFactory.getLogger(UdemyCourseListThread.class);
   private final int COURSELIST_QUEUE_SIZE =
       AppConfig.CONFIG.getInt("app.udemy.courselist.queue.size");
-  private final String COURSE_CACHE_KEY = AppConfig.CONFIG.getString("app.redis.course.cache.key");
+  private static final String COURSE_CACHE_KEY =
+      AppConfig.CONFIG.getString("app.redis.course.cache.key");
   private Jedis jedis = null;
 
   private UdemyCourseListClient searchCourses = null;
@@ -49,7 +50,7 @@ public class UdemyCourseListThread extends Thread {
       } catch (InterruptedException e1) {
         LOGGER.error(
             "Got InterruptedException errorCause: [{}] errorMessage: [{}] errorStackTrace: [{}]",
-                  e1.getCause(), e1.getMessage(), e1.getStackTrace());
+            e1.getCause(), e1.getMessage(), e1.getStackTrace());
       }
 
       if (courseList == null) {

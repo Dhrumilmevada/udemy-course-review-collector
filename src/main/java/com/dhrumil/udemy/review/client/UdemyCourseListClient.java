@@ -88,7 +88,7 @@ public class UdemyCourseListClient {
       while (gotResponse) {
         if (RateLimitUdemyRequest.rateLimitUdemyRestReq.acquire() >= 0L) {
           response = resource.get(ClientResponse.class);
-          if (response.getStatus() == 429) {
+          if (response != null && response.getStatus() == 429) {
             Thread.sleep(500 * failedCount);
             gotResponse = true;
             failedCount++;
@@ -106,6 +106,12 @@ public class UdemyCourseListClient {
       restClient.destroy();
     }
 
+    if (response == null) {
+      LOGGER.error(
+          "Got null response from udemy course-list rest-api for search: [{}] on page: [{}]",
+          searchTopic, page);
+      return null;
+    }
     if (response.getStatus() == 200) {
       String resStr = response.getEntity(String.class);
       JsonObject resJson = JsonUtils.parseToJson(resStr);

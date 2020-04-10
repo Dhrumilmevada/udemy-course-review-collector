@@ -44,5 +44,10 @@ public class Constant {
   public static final String MODIFIED = "modified";
   public static final String USER_MODIFIED = "user_modified";
   public static final String USER = "user";
+  public static final String AVG_RATING = "avg_rating";
+  public static final String AVG_RATING_RECENT = "avg_rating_recent";
+  public static final String NUM_REVIEWS = "num_reviews";
+  public static final String NUM_REVIEWS_RECENT = "num_reviews_recent";
+  public static final String RATING_DISTRIBUTION = "rating_distribution";
 
 }

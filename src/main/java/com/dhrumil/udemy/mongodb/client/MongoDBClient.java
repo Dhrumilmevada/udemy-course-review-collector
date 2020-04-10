@@ -16,6 +16,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Indexes;
 
 public class MongoDBClient {
 
@@ -31,11 +32,16 @@ public class MongoDBClient {
   private MongoClient dbClient;
   private MongoDatabase db;
   private static MongoDBClient instance;
+  private MongoCollection<Document> courseCollections;
+  private MongoCollection<Document> reviwCollection;
 
   private MongoDBClient() {
     super();
     this.dbClient = new MongoClient();
     this.db = dbClient.getDatabase(DATABASE_NAME);
+    this.courseCollections = getOrCreateCollection(COURSE_COLLECTION);
+    this.reviwCollection = getOrCreateCollection(REVIEW_COLLECTION);
+    courseCollections.createIndex(Indexes.text("metadata"));
     LOGGER.info("Created MongoDB client and initialized database with name:[{}]", DATABASE_NAME);
   }
 
@@ -53,15 +59,13 @@ public class MongoDBClient {
 
   public <T> void insert(T document) {
     if (document instanceof Course) {
-      MongoCollection<Document> collection = getOrCreateCollection(COURSE_COLLECTION);
-      insertDocument(collection, document);
+      insertDocument(courseCollections, document);
     }
   }
 
   public <T> void insertMany(List<T> documents) {
     if (documents.get(0) instanceof Review) {
-      MongoCollection<Document> collection = getOrCreateCollection(REVIEW_COLLECTION);
-      insertBulkDocument(collection, documents);
+      insertBulkDocument(reviwCollection, documents);
     }
   }
 
@@ -168,8 +172,7 @@ public class MongoDBClient {
         return true;
       }
     }
-    LOGGER.info(
-        "[{}] collection does not exists in [{}] database , need to create [{}] collection",
+    LOGGER.info("[{}] collection does not exists in [{}] database , need to create [{}] collection",
         collectionName, DATABASE_NAME, collectionName);
     return false;
   }

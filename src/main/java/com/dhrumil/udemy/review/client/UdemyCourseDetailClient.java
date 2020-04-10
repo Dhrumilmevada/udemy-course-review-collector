@@ -58,7 +58,7 @@ public class UdemyCourseDetailClient {
       while (gotResponse) {
         if (RateLimitUdemyRequest.rateLimitUdemyRestReq.acquire() > 0L) {
           response = resource.get(ClientResponse.class);
-          if(response.getStatus() == 429) {
+          if (response != null && response.getStatus() == 429) {
             try {
               Thread.sleep(500 * failedCount);
             } catch (InterruptedException e) {
@@ -81,6 +81,12 @@ public class UdemyCourseDetailClient {
           this.courseID, e.getMessage(), e.getStackTrace(), e.getCause());
     } finally {
       restClient.destroy();
+    }
+
+    if (response == null) {
+      LOGGER.error("Got null response from udemy course-detail rest-api for courseID: [{}]",
+          this.courseID);
+      return null;
     }
 
     if (response.getStatus() == 200) {
@@ -112,8 +118,7 @@ public class UdemyCourseDetailClient {
     course.setUrl(JsonUtils.getString(courseData, Constant.URL));
     course.setPaid(JsonUtils.getBoolean(courseData, Constant.IS_PAID));
 
-    JsonArray instructorArray =
-        JsonUtils.getJsonArray(courseData, Constant.VISIBLE_INSTRUCTORS);
+    JsonArray instructorArray = JsonUtils.getJsonArray(courseData, Constant.VISIBLE_INSTRUCTORS);
     if (instructorArray != null) {
       course.setInstructors(getCourseInstructor(instructorArray));
     }
@@ -146,8 +151,8 @@ public class UdemyCourseDetailClient {
             .getInteger((JsonUtils.getJson(discountJson, Constant.SAVING_PRICE)), Constant.AMOUNT));
         course.setSavingPercentages(
             Integer.parseInt(JsonUtils.getString(discountJson, Constant.DISCOUNT_PERCENT)));
-        course.setDiscountAvailable(Boolean
-            .parseBoolean(JsonUtils.getString(discountJson, Constant.HAS_DISCOUNT_SAVING)));
+        course.setDiscountAvailable(
+            Boolean.parseBoolean(JsonUtils.getString(discountJson, Constant.HAS_DISCOUNT_SAVING)));
       }
     }
 
@@ -165,10 +170,10 @@ public class UdemyCourseDetailClient {
     course.setContentLength(JsonUtils.getDouble(courseData, Constant.CONTENT_LENGTH_VIDEO));
     course.setContentLengthUnit("Second");
 
-    course.setPrerequisites((List<String>) JsonUtils.jsonArrayToList(
-        JsonUtils.getJsonArray(courseData, Constant.PREREQUISITES), List.class));
-    course.setObjectives((List<String>) JsonUtils.jsonArrayToList(
-        JsonUtils.getJsonArray(courseData, Constant.OBJECTIVES), List.class));
+    course.setPrerequisites((List<String>) JsonUtils
+        .jsonArrayToList(JsonUtils.getJsonArray(courseData, Constant.PREREQUISITES), List.class));
+    course.setObjectives((List<String>) JsonUtils
+        .jsonArrayToList(JsonUtils.getJsonArray(courseData, Constant.OBJECTIVES), List.class));
     course.setTargetAudiences((List<String>) JsonUtils.jsonArrayToList(
         JsonUtils.getJsonArray(courseData, Constant.TARGET_AUDIENCES), List.class));
     course.setUpdatedOn(JsonUtils.getString(courseData, Constant.LAST_UPDATE_DATE));
@@ -178,10 +183,46 @@ public class UdemyCourseDetailClient {
     course.setDescription(
         getCourseDescription(JsonUtils.getString(courseData, Constant.DESCRIPTION)));
 
-    StringBuilder metadataStr = new StringBuilder().append(course.getTitle()).append(" ")
-        .append(course.getHeadline()).append(" ").append(course.getCategory()).append(" ")
-        .append(course.getSubcategory()).append(" ").append(course.getDescription());
+    StringBuilder metadataStr =
+        new StringBuilder().append(course.getTitle()).append(" ").append(course.getHeadline())
+            .append(" ").append(course.getCategory()).append(" ").append(course.getSubcategory());
     course.setMetadata(getCourseMetadata(metadataStr.toString()));
+
+    course.setRating(JsonUtils.getDouble(courseData, Constant.AVG_RATING));
+    course.setRating_recent(JsonUtils.getDouble(courseData, Constant.AVG_RATING_RECENT));
+    course.setReviewCount(JsonUtils.getInteger(courseData, Constant.NUM_REVIEWS));
+    course.setReviewCount_recent(JsonUtils.getInteger(courseData, Constant.NUM_REVIEWS_RECENT));
+
+    JsonArray startCountArray = JsonUtils.getJsonArray(courseData, Constant.RATING_DISTRIBUTION);
+
+    if (startCountArray != null) {
+      for (JsonElement startCount : startCountArray) {
+        JsonObject startCountJson = startCount.getAsJsonObject();
+
+        if (startCountJson != null && !startCountJson.isJsonNull()) {
+          switch (JsonUtils.getInteger(startCountJson, Constant.RATING)) {
+            case 1:
+              course.setOneStarCount(JsonUtils.getInteger(startCountJson, Constant.COUNT));
+              break;
+            case 2:
+              course.setTwoStarCount(JsonUtils.getInteger(startCountJson, Constant.COUNT));
+              break;
+            case 3:
+              course.setThreeStarCount(JsonUtils.getInteger(startCountJson, Constant.COUNT));
+              break;
+            case 4:
+              course.setFourStarCount(JsonUtils.getInteger(startCountJson, Constant.COUNT));
+              break;
+            case 5:
+              course.setFiveStarCount(JsonUtils.getInteger(startCountJson, Constant.COUNT));
+              break;
+            default:
+              break;
+          }
+        }
+        startCountJson = null;
+      }
+    }
 
     return course;
   }

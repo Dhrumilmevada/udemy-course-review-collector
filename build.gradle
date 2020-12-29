@@ -7,10 +7,18 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
+
+plugins {
+    id 'com.palantir.docker' version '0.22.1'
+}
+
+
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'java'
 apply plugin: 'jacoco'
+
+version '1.0.0'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -49,3 +57,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+docker{
+	name "${project.name}:${project.version}"
+	files 'build/libs/udemy-course-review-collector-1.0.0.jar'
+}

@@ -26,6 +26,8 @@ public class RedisCacheClient {
       AppConfig.CONFIG.getLong("app.redis.course.cache.scheduleJob.initial.delay");
   private static final long REDIS_COURSE_JOB_INTERVAL =
       AppConfig.CONFIG.getLong("app.redis.course.cache.scheduleJob.interval");
+  private static final String REDIS_HOST = AppConfig.CONFIG.getString("app.redis.host.name");
+  private static final int REDIS_PORT = AppConfig.CONFIG.getInt("app.redis.host.port");
 
   private static RedisCacheClient instance;
   private JedisPool jedisPool;
@@ -34,7 +36,7 @@ public class RedisCacheClient {
 
   private RedisCacheClient() {
     super();
-    this.jedisPool = new JedisPool(this.buildJedispoolconfig(), "localhost");
+    this.jedisPool = new JedisPool(this.buildJedispoolconfig(), REDIS_HOST, REDIS_PORT);
     startExpiryTimeCheckingJob();
   }
 
@@ -130,6 +132,7 @@ public class RedisCacheClient {
     if (!this.scheduledExecutorService.isShutdown()) {
       this.scheduledExecutorService.shutdown();
     }
+    this.jedisPool.close();
   }
 
 }

@@ -28,6 +28,8 @@ public class MongoDBClient {
       AppConfig.CONFIG.getString("app.mongodb.course.collection");
   private static final String REVIEW_COLLECTION =
       AppConfig.CONFIG.getString("app.mongodb.review.collection");
+  private static final String MONGO_HOST = AppConfig.CONFIG.getString("app.mongodb.host.name");
+  private static final int MONGO_PORT = AppConfig.CONFIG.getInt("app.mongodb.host.port");
 
   private MongoClient dbClient;
   private MongoDatabase db;
@@ -37,7 +39,7 @@ public class MongoDBClient {
 
   private MongoDBClient() {
     super();
-    this.dbClient = new MongoClient();
+    this.dbClient = new MongoClient(MONGO_HOST, MONGO_PORT);
     this.db = dbClient.getDatabase(DATABASE_NAME);
     this.courseCollections = getOrCreateCollection(COURSE_COLLECTION);
     this.reviwCollection = getOrCreateCollection(REVIEW_COLLECTION);
@@ -55,6 +57,10 @@ public class MongoDBClient {
       }
     }
     return instance;
+  }
+
+  public void close() {
+    this.dbClient.close();
   }
 
   public <T> void insert(T document) {

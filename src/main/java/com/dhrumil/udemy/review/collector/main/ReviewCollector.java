@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import com.dhrumil.udemy.mongodb.client.MongoDBClient;
 import com.dhrumil.udemy.redis.client.RedisCacheClient;
 import com.dhrumil.udemy.review.runnable.UdemyCourseSearchThread;
 
@@ -46,6 +47,7 @@ public class ReviewCollector {
         collector.threadpool.shutdown();
         collector.scheduledExecutorService.shutdown();
         RedisCacheClient.getInstance().close();
+        MongoDBClient.getInstance().close();
       }
 
     });
